@@ -1,15 +1,16 @@
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.urls import path, reverse
+from django.template.loader import render_to_string
 from django.shortcuts import render
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from django.http import Http404
 import json
 
 from .models import ActionLog
 
 
+@admin.register(ActionLog)
 class ActionLogAdmin(admin.ModelAdmin):
     list_display = (
         'timestamp',
@@ -157,17 +158,12 @@ class ActionLogAdmin(admin.ModelAdmin):
         )
     object_history_link.short_description = "Historique"
 
+
     def changes_display(self, obj):
         if not obj.changes:
             return "-"
 
-        html = ['<table style="border-collapse: collapse; width: 100%;">']
-        html.append('<thead><tr>')
-        html.append('<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Champ</th>')
-        html.append('<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Ancienne valeur</th>')
-        html.append('<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Nouvelle valeur</th>')
-        html.append('</tr></thead><tbody>')
-
+        history = []
         for field, values in obj.changes.items():
             old_val = values.get('old', '-')
             new_val = values.get('new', '-')
@@ -177,17 +173,16 @@ class ActionLogAdmin(admin.ModelAdmin):
             if isinstance(new_val, dict):
                 new_val = new_val.get('repr', json.dumps(new_val, ensure_ascii=False))
 
-            html.append('<tr>')
-            html.append(f'<td style="border: 1px solid #ddd; padding: 8px;"><strong>{field}</strong></td>')
-            html.append(f'<td style="border: 1px solid #ddd; padding: 8px; background: #fff3cd;">{old_val}</td>')
-            html.append(f'<td style="border: 1px solid #ddd; padding: 8px; background: #d4edda;">{new_val}</td>')
-            html.append('</tr>')
+            data = {
+                "field": field,
+                "old_val": old_val,
+                "new_val": new_val,
+            }
+            history.append(data)
 
-        html.append('</tbody></table>')
-        return mark_safe(''.join(html))
+        context = {
+            'history': history
+        }
+        return render_to_string('admin/partials/action_view.html', context)
     changes_display.short_description = "Détails des modifications"
 
-
-# Enregistrement dans l'admin custom du projet
-
-admin.site.register(ActionLog, ActionLogAdmin)
