@@ -2,6 +2,8 @@ import logging
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
+from django.db import connection
+from django.apps import apps
 
 from .models import ActionLog, ActionType
 from .registry import ActionLogRegistry
@@ -22,6 +24,18 @@ def get_context():
         'ip_address': RequestContextMiddleware.get_ip_address(),
         'user_agent': RequestContextMiddleware.get_user_agent(),
     }
+
+def _skip_signal():
+    # App pas complètement prête (startup, migrate, shell, etc.)
+    if not apps.ready:
+        return True
+
+    # Migration / transaction en cours
+    if connection.in_atomic_block:
+        return True
+
+    # Table pas encore créée
+    return "django_app_logs_actionlog" not in connection.introspection.table_names()
 
 
 @receiver(pre_save)
@@ -54,7 +68,7 @@ def on_post_save(sender, instance, created, raw, using, update_fields, **kwargs)
     Signal post_save: capture CREATE et UPDATE.
     """
     # Ignorer les fixtures (raw=True)
-    if raw:
+    if raw or _skip_signal():
         return
 
     # Vérifier si le modèle est exclu
