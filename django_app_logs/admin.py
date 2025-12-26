@@ -143,7 +143,7 @@ class ActionLogAdmin(admin.ModelAdmin):
     def object_history_link(self, obj):
         """Lien vers l'historique complet de l'objet."""
         url = reverse(
-            'admin:history_object_history',
+            f'{self.admin_site.name}:history_object_history',
             args=[obj.content_type_id, obj.object_id]
         )
         count = ActionLog.objects.filter(
