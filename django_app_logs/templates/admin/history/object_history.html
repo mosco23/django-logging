@@ -7,7 +7,7 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         {% with request.resolver_match.app_name|add:':index' as app_index %}
-            <li class="breadcrumb-item"><a href="">{{app_index|pprint}}</a></li>
+            <li class="breadcrumb-item"><a href="{% url app_index %}">Accueil</a></li>
         {% endwith %}
         {% with request.resolver_match.app_name|add:':django_app_logs_actionlog_changelist' as actionlog_link %}
             <li class="breadcrumb-item"><a href="{% url actionlog_link %}">Journal des actions</a></li>
