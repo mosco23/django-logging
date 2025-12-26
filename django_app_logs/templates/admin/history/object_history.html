@@ -6,8 +6,12 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Accueil</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'admin:history_actionlog_changelist' %}">Journal des actions</a></li>
+        {% with request.resolver_match.app_name|add:':index' as app_index %}
+            <li class="breadcrumb-item"><a href="">{{app_index|pprint}}</a></li>
+        {% endwith %}
+        {% with request.resolver_match.app_name|add:':django_app_logs_actionlog_changelist' as actionlog_link %}
+            <li class="breadcrumb-item"><a href="{% url actionlog_link %}">Journal des actions</a></li>
+        {% endwith %}
         <li class="breadcrumb-item active">Historique de {{ object_repr }}</li>
     </ol>
 </nav>
@@ -109,9 +113,11 @@
                             {% endif %}
                         </div>
                         <div class="timeline-footer">
-                            <a href="{% url 'admin:history_actionlog_change' log.pk %}" class="btn btn-sm btn-info">
-                                <i class="fas fa-eye"></i> Détails
-                            </a>
+                            {% with request.resolver_match.app_name|add:':django_app_logs_actionlog_change' as actionlog_link %}
+                                <a href="{% url actionlog_link log.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+                            {% endwith %}
                         </div>
                     </div>
                 </div>
@@ -128,9 +134,11 @@
             {% endif %}
         </div>
         <div class="card-footer">
-            <a href="{% url 'admin:history_actionlog_changelist' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Retour au journal
-            </a>
+            {% with request.resolver_match.app_name|add:':django_app_logs_actionlog_changelist' as actionlog_link %}
+                <a href="{% url actionlog_link %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour au journal
+                </a>
+            {% endwith %}
             {% if object_url %}
             <a href="{{ object_url }}" class="btn btn-primary">
                 <i class="fas fa-external-link-alt"></i> Voir l'objet
