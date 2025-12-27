@@ -99,14 +99,15 @@ class ActionLogAdmin(admin.ModelAdmin):
         # URL vers l'objet s'il existe encore
         object_url = None
         model_class = content_type.model_class()
-        try:
-            obj = model_class.objects.get(pk=object_id)
-            object_url = reverse(
-                f'admin:{content_type.app_label}_{content_type.model}_change',
-                args=[object_id]
-            )
-        except (model_class.DoesNotExist, Exception):
-            pass
+        if model_class is not None:
+            try:
+                obj = model_class.objects.get(pk=object_id)
+                object_url = reverse(
+                    f'admin:{content_type.app_label}_{content_type.model}_change',
+                    args=[object_id]
+                )
+            except (model_class.DoesNotExist, Exception):
+                pass
 
         context = {
             **self.admin_site.each_context(request),
